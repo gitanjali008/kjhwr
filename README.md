@@ -5,7 +5,7 @@ This app compares Elexon's national wind **forecasts** (WINDFOR) with **actual**
 wind generation (FUELHH, fuel type WIND) for **January 2026**, and measures how
 wrong the forecast typically is.
 
-**Live app:** _coming soon (link added after deployment)_
+**Live app:** https://wind-forecast-insight.vercel.app
 
 ![Dashboard screenshot](docs/screenshot.png)
 
@@ -60,6 +60,9 @@ frontend/                React + TypeScript + Vite + Recharts
   src/format.ts          Number/date formatting (with tests)
   Dockerfile, nginx.conf Production image: static build served by nginx, /api proxied
 docker-compose.yml       Runs the full app with one command
+api/index.py             Vercel serverless entry point (wraps the FastAPI app)
+vercel.json              Vercel build, function and /api routing config
+requirements.txt         Python dependencies for the Vercel function
 ```
 
 ## Running it
@@ -97,6 +100,18 @@ npm run dev                   # http://localhost:5173, /api is proxied to port 8
 cd backend && python -m pytest    # 21 tests
 cd frontend && npm test           # 5 tests
 ```
+
+### Deployment (Vercel)
+
+The live app is a single Vercel project: the React build is served as static
+files and FastAPI runs as a Python serverless function under `/api`. To deploy
+your own copy: `npm i -g vercel`, then `vercel deploy --prod` from the repo root.
+
+On Vercel the backend reads the bundled January 2026 snapshot (`backend/data/`)
+instead of calling Elexon on every cold start; the page badge shows
+"Elexon snapshot". The numbers are identical to the live API. Locally and in
+Docker it fetches live data. Override with the `DATA_SOURCE` environment
+variable (`live` or `snapshot`).
 
 ## API
 
