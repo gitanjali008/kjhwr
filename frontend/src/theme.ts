@@ -24,16 +24,51 @@ const dark: typeof light = {
 
 export type ChartTheme = typeof light;
 
-export function useChartTheme(): ChartTheme {
-  const query = "(prefers-color-scheme: dark)";
-  const [isDark, setDark] = useState(() => window.matchMedia(query).matches);
+type Choice = "light" | "dark" | null; // null = follow the OS setting
+
+const STORAGE_KEY = "theme";
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+function readChoice(): Choice {
+  try {
+    const v = localStorage.getItem(STORAGE_KEY);
+    return v === "light" || v === "dark" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Light/dark theme: the toggle's saved choice wins, otherwise the OS setting. */
+export function useTheme() {
+  const [choice, setChoice] = useState<Choice>(readChoice);
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia(DARK_QUERY).matches);
+
   useEffect(() => {
-    const mql = window.matchMedia(query);
-    const onChange = (e: MediaQueryListEvent) => setDark(e.matches);
+    const mql = window.matchMedia(DARK_QUERY);
+    const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches);
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, []);
-  return isDark ? dark : light;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (choice) root.dataset.theme = choice;
+    else delete root.dataset.theme;
+  }, [choice]);
+
+  const isDark = choice ? choice === "dark" : systemDark;
+
+  const toggle = () => {
+    const next = isDark ? "light" : "dark";
+    setChoice(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable (e.g. private mode): the choice lasts for this visit only.
+    }
+  };
+
+  return { chart: isDark ? dark : light, isDark, toggle };
 }
 
 export const axisProps = (t: ChartTheme) => ({

@@ -8,7 +8,7 @@ import { HorizonChart } from "./components/HorizonChart";
 import { StatTiles } from "./components/StatTiles";
 import { TimeSeriesChart } from "./components/TimeSeriesChart";
 import { formatMW } from "./format";
-import { useChartTheme } from "./theme";
+import { useTheme } from "./theme";
 import type { Health, HorizonMetrics, MetricsResponse, Query, SeriesPoint } from "./types";
 
 const MIN_DATE = "2026-01-01";
@@ -18,7 +18,7 @@ const MAX_HORIZON = 48;
 const INITIAL_QUERY: Query = { mode: "dayahead", horizon: 24, startDate: MIN_DATE, endDate: MAX_DATE };
 
 export default function App() {
-  const theme = useChartTheme();
+  const { chart: theme, isDark, toggle: toggleTheme } = useTheme();
   const [query, setQuery] = useState<Query>(INITIAL_QUERY);
   const [series, setSeries] = useState<SeriesPoint[]>([]);
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
@@ -68,11 +68,22 @@ export default function App() {
             was actually generated, and see how wrong they typically are.
           </p>
         </div>
-        {health && (
-          <span className="badge" title={`${health.actuals} actuals, ${health.forecasts} forecasts`}>
-            <span className="badge-dot" /> Data: {health.source === "elexon-live" ? "Elexon BMRS (live)" : "Elexon snapshot"}
-          </span>
-        )}
+        <div className="masthead-actions">
+          {health && (
+            <span className="badge" title={`${health.actuals} actuals, ${health.forecasts} forecasts`}>
+              <span className="badge-dot" /> Data: {health.source === "elexon-live" ? "Elexon BMRS (live)" : "Elexon snapshot"}
+            </span>
+          )}
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+            title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          >
+            {isDark ? "☀️" : "🌙"}
+          </button>
+        </div>
       </header>
 
       <Controls query={query} onChange={setQuery} minDate={MIN_DATE} maxDate={MAX_DATE} maxHorizon={MAX_HORIZON} />
