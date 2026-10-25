@@ -26,4 +26,8 @@ HTTP_TIMEOUT_SECONDS = float(os.getenv("HTTP_TIMEOUT_SECONDS", "60"))
 # Allowed CORS origins for the React frontend (comma separated).
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 
-SNAPSHOT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+# "live" fetches from Elexon (snapshot as fallback); "snapshot" reads bundled data only.
+# Serverless hosts (Vercel) default to the snapshot to avoid refetching on every cold start.
+DATA_SOURCE = os.getenv("DATA_SOURCE", "snapshot" if os.getenv("VERCEL") else "live")
+
+SNAPSHOT_DIR =os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")

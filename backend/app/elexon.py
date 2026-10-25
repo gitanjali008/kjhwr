@@ -136,6 +136,9 @@ class WindDataRepository:
             return self._data
 
     def _load(self) -> tuple[list[Actual], list[Forecast]]:
+        if config.DATA_SOURCE == "snapshot":
+            self.source = "snapshot"
+            return load_snapshot()
         try:
             with httpx.Client(timeout=config.HTTP_TIMEOUT_SECONDS) as client:
                 data = fetch_actuals(client), fetch_forecasts(client)
